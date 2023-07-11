@@ -187,10 +187,11 @@ theorem sumOfSquares_mul {x y : α} (sosx : SumOfSquares x)
     SumOfSquares (x * y) := by
   rcases sosx with ⟨a, b, xeq⟩
   rcases sosy with ⟨c, d, yeq⟩
-  rw [xeq, yeq]
+  rw [xeq, yeq] -- you can get rid of this with rfl
 -- When using `use` to provide multiple witnesses, we just separate them with a comma.
-  use a * c - b * d, a * d + b * c
-  ring
+  -- use a * c - b * d, a * d + b * c
+  -- ring
+  exact ⟨a * c - b * d, a * d + b * c, by ring⟩
 
 /- Often we want to extract a hypothesis `x = y` from `∃ x y, x = y` and
 then rewrite `x = y` in the goal. An efficient way to do this is to name
