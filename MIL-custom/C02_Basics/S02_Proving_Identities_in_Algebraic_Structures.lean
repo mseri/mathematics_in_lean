@@ -102,12 +102,19 @@ theorem eq_neg_of_add_eq_zero {a b : R} (h : a + b = 0) : a = -b := by
   rw [add_left_cancel h1]
   done
 
+-- We had to use the annotation (-0 : R) instead of
+-- 0 in the third theorem because without specifying
+-- R it is impossible for Lean to infer which 0 we
+-- have in mind, and by default it would be interpreted
+-- as a natural number.
 theorem neg_zero : (-0 : R) = 0 := by
   apply neg_eq_of_add_eq_zero
   rw [add_zero]
 
 theorem neg_neg (a : R) : - -a = a := by
-  sorry
+  rw [<-add_zero (- -a), <- add_right_neg a, add_comm,
+      add_assoc, add_right_neg (-a), add_zero]
+  done
 
 end MyRing
 
@@ -120,23 +127,33 @@ example (a b : R) : a - b = a + -b :=
 
 end
 
+-- no `by` here, it is the definition!
 example (a b : ℝ) : a - b = a + -b :=
-  rfl
+  rfl -- constructor of equality type
+  -- Presenting it as a proof of a - b = a + -b
+  -- forces Lean to unfold the definition and
+  -- recognize both sides as being the same.
 
 example (a b : ℝ) : a - b = a + -b := by
-  rfl
+  rfl -- there is a `by` so this is a tactic
 
 namespace MyRing
 variable {R : Type _} [Ring R]
 
-theorem self_sub (a : R) : a - a = 0 :=
-  sorry
+theorem self_sub (a : R) : a - a = 0 := by
+  rw [<-add_right_neg a, sub_eq_add_neg a a]
+  done
 
 theorem one_add_one_eq_two : 1 + 1 = (2 : R) := by
   norm_num
 
-theorem two_mul (a : R) : 2 * a = a + a :=
-  sorry
+theorem two_mul (a : R) : 2 * a = a + a := by
+  have h : a + a = (1 + 1) * a := by
+    nth_rw 1 [<- one_mul a]
+    nth_rw 2 [<- one_mul a]
+    rw [<-add_mul]
+  rw [h, one_add_one_eq_two]
+  done
 
 end MyRing
 
@@ -158,14 +175,22 @@ variable {G : Type _} [Group G]
 
 namespace MyGroup
 
+theorem mul_inv_cancel_left (a b : G) : b⁻¹ * b * a = a := by
+  rw [mul_left_inv b, one_mul]
+  done
+
 theorem mul_right_inv (a : G) : a * a⁻¹ = 1 := by
-  sorry
+  have h : (a * a⁻¹)⁻¹ * (a * a⁻¹ * (a * a⁻¹)) = 1 := by
+    rw [mul_assoc, ← mul_assoc a⁻¹ a, mul_left_inv, one_mul, mul_left_inv]
+  rw [← h, ← mul_assoc, mul_left_inv, one_mul]
 
 theorem mul_one (a : G) : a * 1 = a := by
-  sorry
+  rw [<-mul_left_inv a, <-mul_assoc,
+      mul_right_inv, one_mul]
+  done
 
 theorem mul_inv_rev (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹ := by
-  sorry
+  rw [ <-one_mul (a*b)⁻¹, <-mul_left_inv (a*b) ]
 
 end MyGroup
 

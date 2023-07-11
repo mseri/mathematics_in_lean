@@ -42,10 +42,18 @@ theorem my_lemma4 :
     ∀ {x y ε : ℝ}, 0 < ε → ε ≤ 1 → |x| < ε → |y| < ε → |x * y| < ε := by
   intro x y ε epos ele1 xlt ylt
   calc
-    |x * y| = |x| * |y| := sorry
-    _ ≤ |x| * ε := sorry
-    _ < 1 * ε := sorry
-    _ = ε := sorry
+    |x * y| = |x| * |y| := abs_mul x y
+    _ ≤ |x| * ε := by
+      apply mul_le_mul
+      . rfl
+      . exact ylt.le -- le_of_lt ylt
+      . apply abs_nonneg
+      . apply abs_nonneg
+    _ < 1 * ε := by
+      apply (mul_lt_mul_right epos).2
+      exact lt_of_lt_of_le xlt ele1
+    _ = ε := one_mul ε
+  done
 
 def FnUb (f : ℝ → ℝ) (a : ℝ) : Prop :=
   ∀ x, f x ≤ a
@@ -58,27 +66,42 @@ variable (f g : ℝ → ℝ) (a b : ℝ)
 
 example (hfa : FnUb f a) (hgb : FnUb g b) : FnUb (fun x ↦ f x + g x) (a + b) := by
   intro x
-  dsimp
+  dsimp -- simplify applying the definition
   apply add_le_add
-  apply hfa
-  apply hgb
+  . apply hfa
+  . apply hgb
 
 example (hfa : FnLb f a) (hgb : FnLb g b) : FnLb (fun x ↦ f x + g x) (a + b) :=
-  sorry
+  fun y ↦ add_le_add (hfa y) (hgb y)
 
 example (nnf : FnLb f 0) (nng : FnLb g 0) : FnLb (fun x ↦ f x * g x) 0 :=
-  sorry
+  fun y ↦ mul_nonneg (nnf y) (nng y)
+
+-- short version of the following
+example (nnf : FnLb f 0) (nng : FnLb g 0) : FnLb (fun x ↦ f x * g x) 0 := by
+  intro x
+  dsimp
+  -- or even exact mul_nonneg (nnf y) (nng y)
+  apply mul_nonneg
+  . apply nnf
+  . apply nng
+
+example (hfa : FnUb f a) (hfb : FnUb g b) (nng : FnLb g 0) (nna : 0 ≤ a) :
+    FnUb (fun x ↦ f x * g x) (a * b) := by
+  intro y
+  dsimp
+  exact mul_le_mul (hfa y) (hfb y) (nng y) nna
 
 example (hfa : FnUb f a) (hfb : FnUb g b) (nng : FnLb g 0) (nna : 0 ≤ a) :
     FnUb (fun x ↦ f x * g x) (a * b) :=
-  sorry
+  fun y ↦ mul_le_mul (hfa y) (hfb y) (nng y) nna
 
 end
 
 section
 variable {α : Type _} {R : Type _} [OrderedCancelAddCommMonoid R]
 
-#check add_le_add
+#check @add_le_add
 
 def FnUb' (f : α → R) (a : R) : Prop :=
   ∀ x, f x ≤ a

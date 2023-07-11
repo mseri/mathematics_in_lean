@@ -41,10 +41,32 @@ example (ubf : FnHasUb f) (ubg : FnHasUb g) : FnHasUb fun x ↦ f x + g x := by
   apply fnUb_add ubfa ubgb
 
 example (lbf : FnHasLb f) (lbg : FnHasLb g) : FnHasLb fun x ↦ f x + g x := by
-  sorry
+  rcases lbf with ⟨a, lbfa⟩
+  rcases lbg with ⟨b, lbgb⟩
+  exact ⟨a + b, fun x ↦ add_le_add (lbfa x) (lbgb x)⟩
+
+example (lbf : FnHasLb f) (lbg : FnHasLb g) : FnHasLb fun x ↦ f x + g x :=
+  match lbf with
+  | ⟨a, lbfa⟩ =>
+  match lbg with
+  | Exists.intro b lbgb => -- alt for ⟨b, lbgb⟩
+    ⟨a + b, fun x ↦ add_le_add (lbfa x) (lbgb x)⟩
+
+example : FnHasLb f -> FnHasLb g -> FnHasLb fun x ↦ f x + g x :=
+  fun ⟨a, lbfa⟩ ⟨b, lbgb⟩ ↦ ⟨a + b, fun x ↦ add_le_add (lbfa x) (lbgb x)⟩
 
 example {c : ℝ} (ubf : FnHasUb f) (h : c ≥ 0) : FnHasUb fun x ↦ c * f x := by
-  sorry
+  rcases ubf with ⟨a, ubfa⟩
+  use c * a
+  intro y
+  dsimp
+  exact mul_le_mul_of_nonneg_left (ubfa y) h
+
+example {c : ℝ} (ubf : FnHasUb f) (h : c ≥ 0) : FnHasUb fun x ↦ c * f x :=
+  match ubf with
+  | ⟨a, ubfa⟩ =>
+    ⟨c * a, fun y ↦ mul_le_mul_of_nonneg_left (ubfa y) h⟩
+
 
 example : FnHasUb f → FnHasUb g → FnHasUb fun x ↦ f x + g x := by
   rintro ⟨a, ubfa⟩ ⟨b, ubgb⟩
