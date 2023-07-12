@@ -188,7 +188,7 @@ theorem sumOfSquares_mul {x y : α} (sosx : SumOfSquares x)
   rcases sosx with ⟨a, b, xeq⟩
   rcases sosy with ⟨c, d, yeq⟩
   rw [xeq, yeq] -- you can get rid of this with rfl
--- When using `use` to provide multiple witnesses, we just separate them with a comma.
+  -- When using `use` to provide multiple witnesses, we just separate them with a comma.
   -- use a * c - b * d, a * d + b * c
   -- ring
   exact ⟨a * c - b * d, a * d + b * c, by ring⟩
@@ -204,6 +204,7 @@ theorem sumOfSquares_mul' {x y : α} (sosx : SumOfSquares x) (sosy : SumOfSquare
 
 end
 
+
 /- Now we'll discuss negation: statements of the form "not `P`".
 We express this as `¬P`, and type `¬` with \not or just \n.
 There's also the notation `A ≠ B`, meaning `¬(A = B)`, and typed using \ne.
@@ -215,21 +216,24 @@ function type, this section might remind you of Section 1. -/
 section
 variable (a b : ℝ)
 
+-- ¬(b < a) = ¬b < a
 example (h : a < b) : ¬b < a := by
   intro h'
   have : a < a := lt_trans h h'
+  -- apply lt_irrefl a this
   linarith
 
 /- We can define an object in the local context using `let`. It's like
 `have`, but for data. -/
 example : ¬∀ {f : ℝ → ℝ}, Monotone f → ∀ {a b}, f a ≤ f b → a ≤ b := by
   intro h
-  let f : ℝ → ℝ := fun x ↦ 0
--- We create a subgoal of `Monotone f` here; its proof must be indented.
+  let f : ℝ → ℝ := fun _ ↦ 0
+  -- We create a subgoal of `Monotone f` here; its proof must be indented.
   have monof : Monotone f := by
-    intro a b aleb
-    exact le_refl _
-  have h' : f 1 ≤ f 0 := le_refl _
+    intro a b _aleb
+    -- dsimp -- to see why
+    exact Eq.le rfl
+  have h' : f 1 ≤ f 0 := by exact Eq.le rfl
   have h'' : 1 ≤ 0 := h monof h'
   linarith
 end
